@@ -1,0 +1,50 @@
+go-images/jpeg
+
+This product includes software developed by The Go Authors
+(https://go.dev, package image/jpeg), licensed under the BSD 3-Clause
+licence reproduced in LICENSE. Copyright 2009 The Go Authors.
+
+This is a fork. The changes carried here are stated:
+
+  2026-09-22  A FOUR-component JPEG's chroma is upsampled the way libjpeg
+              does rather than by repeating each sample.
+
+              image/jpeg merges the four planes itself, in applyBlack,
+              through image/internal/imageutil.DrawYCbCr -- which takes the
+              chroma sample whose index is the output coordinate divided
+              down. A caller therefore receives an *image.CMYK whose chroma
+              is a staircase, and cannot do better, because the planes are
+              gone. A THREE-component picture is not affected: it comes back
+              as an *image.YCbCr with its planes intact and a caller may
+              upsample them itself.
+
+              chroma.go replaces that one call with drawYCbCrFancy, which
+              carries libjpeg's h2v2 and h2v1 fancy upsamplers term for term
+              (jdsample.c:405-423 and :455-470): the near sample weighted
+              three times the far one in each direction, the rounding split
+              +8 / +7 between the two output columns, and the edges formed by
+              replication. Ratios libjpeg itself repeats are repeated.
+
+              Measured against poppler, which is libjpeg, on a 258x258 YCCK
+              picture with 2x2 chroma (PDFBox-adjacent corpus,
+              openpdf objectXref.pdf), 266 256 samples:
+
+                              C     M     Y     K    within one level
+                  before     36    18    21     1          91.16%
+                  after       2     2     3     1          99.90%
+
+              The black plate is the control: it is carried at full
+              resolution and is never upsampled, and it is 1 before and
+              after.
+
+              Files: chroma.go (new), reader.go (one call site, and the
+              import of the internal package it needed, removed).
+
+  2026-09-22  The test files read their fixtures from testdata/ rather than
+              ../testdata/, because image/jpeg shares that directory with
+              the other image packages inside the standard library and a
+              module cannot. The fixtures themselves are copied unchanged.
+              No test's substance is altered, and the whole suite passes.
+
+  2026-09-22  Only the jpeg package is carried: dct.go, huffman.go,
+              reader.go, scan.go, writer.go and their tests.
