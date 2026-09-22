@@ -1,0 +1,57 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# This repository is a FORK of Go's image/jpeg, so it does not carry the
+# org's 100% statement-coverage gate: most of the code and all but one of
+# the test files are Go's, and Go does not write its tests to that rule.
+# What is enforced instead is that Go's own suite passes unaltered and that
+# the one thing this fork changes has tests of its own -- see NOTICE.
+jobs:
+  gofmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "::error::these files are not gofmt-clean:"; echo "$unformatted"
+            exit 1
+          fi
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test -race ./...
+
+  # The fork's own reason to exist, named so a failure says which it was.
+  chroma:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+      - name: the chroma upsampler
+        run: go test -run 'Upsampl|Unsubsampled|Ratio|DrawYCbCr' -v ./
