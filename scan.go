@@ -170,6 +170,17 @@ func (d *decoder) processSOS(n int) error {
 		blockCount int
 	)
 	for my := 0; my < myy; my++ {
+		// Recorded BEFORE the row is decoded, so it names the rows already
+		// finished rather than the one being attempted. A truncated stream fails
+		// somewhere inside a row, and claiming that row would hand a caller a
+		// band of half-decoded blocks to draw.
+		if !d.progressive {
+			if rows := my * 8 * v0; rows < d.height {
+				d.rowsDone = rows
+			} else {
+				d.rowsDone = d.height
+			}
+		}
 		for mx := 0; mx < mxx; mx++ {
 			for i := 0; i < nComp; i++ {
 				compIndex := scan[i].compIndex

@@ -6,6 +6,26 @@ licence reproduced in LICENSE. Copyright 2009 The Go Authors.
 
 This is a fork. The changes carried here are stated:
 
+  2026-09-26  DecodePartial reports what a truncated stream did decode.
+
+              Decode is all-or-nothing: a file still arriving yields a nil
+              image and "short Huffman data" whatever fraction of it is
+              present, which is the same as having nothing. DecodePartial
+              returns the image at its full size together with the number of
+              pixel rows that are FINISHED, counting from the top.
+
+              scan.go records that count at the head of each MCU row -- before
+              the row is decoded, never after, because a truncated stream
+              stops inside a row and claiming it would hand a caller a band of
+              half-decoded blocks. reader.go adds DecodePartial, which refuses
+              partially in three cases and says why: a progressive file (no
+              row is final until the last scan), CMYK or RGB-in-JPEG (both
+              need a conversion pass over the finished image), and a failure
+              before the first row completed.
+
+              Nothing else changes. Decode, DecodeConfig and Encode behave
+              exactly as before.
+
   2026-09-22  A FOUR-component JPEG's chroma is upsampled the way libjpeg
               does rather than by repeating each sample.
 
