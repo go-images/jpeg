@@ -1,3 +1,3 @@
 module github.com/go-images/jpeg
 
-go 1.26.4
+go 1.27.1
