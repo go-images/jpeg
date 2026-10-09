@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: '1.27.1'
+          go-version: '1.27.2'
       - name: gofmt
         run: |
           unformatted=$(gofmt -l .)
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: '1.27.1'
+          go-version: '1.27.2'
       - run: go build ./...
       - run: go vet ./...
       - run: go test -race ./...
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: '1.27.1'
+          go-version: '1.27.2'
       - name: the chroma upsampler
         run: go test -run 'Upsampl|Unsubsampled|Ratio|DrawYCbCr' -v ./
 
@@ -97,7 +97,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: '1.27.1'
+          go-version: '1.27.2'
       - run: sudo apt-get update && sudo apt-get install -y qemu-user-static
       - name: Test under qemu (${{ matrix.goarch }})
         run: GOARCH=${{ matrix.goarch }} go test ${{ matrix.exec }} ./...
